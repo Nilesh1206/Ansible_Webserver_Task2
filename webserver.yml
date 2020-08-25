@@ -1,0 +1,55 @@
+- hosts: all
+  name: Webserver Configuring
+  tasks:
+     - name: Installing Httpd server
+       package:
+            name: httpd
+            state: present
+       become: true
+       become_user: root
+       become_method: sudo
+       register: x
+
+     - name: Document root
+       file:
+           state: directory
+           dest: "/var/www/files"
+       become: true
+       become_user: root
+       become_method: sudo
+       register: y
+
+     - name: Configuration
+       template:
+          dest: "/etc/httpd/conf.d/web.conf"
+          src: "/root/web/web.conf"
+       become: true
+       become_user: root
+       become_method: sudo
+       when: x.rc == 0
+       notify: service httpd
+     - name: service httpd
+       service:
+             name: "httpd"
+             state: restarted
+       become: true
+       become_user: root
+       become_method: sudo
+
+     - name: Copying Webpages
+       get_url:
+            dest: "/var/www/files"
+            url: "https://raw.githubusercontent.com/Nilesh1206/this-is-my-repo/master/index.html"
+       become: true
+       become_user: root
+       become_method: sudo
+
+
+     - name: Starting httpd services
+       service:
+            name: "httpd"
+            state: started
+       become: true
+       become_user: root
+       become_method: sudo
+
